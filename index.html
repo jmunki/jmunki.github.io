@@ -6,7 +6,9 @@
   <link rel="stylesheet" href="stylesheet.css" type="text/css">
   </head>
   <body>
-  	
+  	<div id='main-container'>
+
+	</div>	
   </body>
 <script src="https://www.gstatic.com/firebasejs/live/3.0/firebase.js"></script>
 <script>
@@ -18,5 +20,8 @@
     storageBucket: "",
   };
   firebase.initializeApp(config);
+
+  var container = document.getElementById('main-container');
+  console.log(firebase.database().ref());
 </script>
 </html>
