@@ -34,5 +34,5 @@ function renderItem(item)
       +"<div class='col-md-4'>"+itemBody+"</div>";
 
     var itemRow = "<div class='row'>"+itemContent+"</div>";
-    $('#main-container').append(itemRow);
+    //$('#main-container').append(itemRow);
 }
