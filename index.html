@@ -1,25 +1,239 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  	<meta charset="UTF-8">
-  	<meta name="viewport" content="width=device-width, initial-scale=1">
-  	<title>JMunki's GitHub Page</title>
-  	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-  	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
-  	<link rel="stylesheet" href="stylesheet.css" type="text/css">
+    <meta charset="UTF-8">
+    <title>PhaserTest</title>
+    <script src="phaser.js"></script>
+    <style>
+        * {
+            padding: 0;
+            margin: 0
+        }
+        body {
+            font-family: sans-serif;
+            font-size: 24px;
+            display: flex;
+            flex-direction: column-reverse;
+            background-color: #2d2d2d;
+        }
+        .action-container {
+            margin: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .action-button {
+            margin: 2px;
+            display: flex;
+            text-align: center;
+            justify-content: center;
+            color: white;
+            background-color: lightslategrey;
+            cursor: pointer;
+            user-select: none;
+        }
+        .action-button:hover {
+            color: white;
+            background-color: darkslategrey;
+        }
+    </style>
 </head>
 <body>
-	<div id='main-container' class='container'>
-		<div class='jumbotron'>
-			<h1>JMunki's GitHub Page</h1>
-			<p>Just a simple web page for keeping track of things I've made.</p>
-		</div>
-		<ul>
-			<li>
-			<a href='https://chat-app-1ad84.firebaseapp.com/'>Chat App</a>
-			<p>A simple chat app using Firebase as the backend storage and React as the frontend JavaScript framework.</p>
-			</li>
-		</ul>
-	</div>	
+<div class="action-container">
+    <div class="action-button" onclick="redeal(false)">New Player Hand</div>
+    <div class="action-button" onclick="redeal(true)">New Dealer Hand</div>
+    <div class="action-button" onclick="resetDeck()">Reset Deck</div>
+</div>
+<script type="text/javascript">
+    var config = {
+        type: Phaser.WEBGL,
+        width: window.innerWidth,
+        height: window.innerHeight-80,
+        backgroundColor: '#2d2d2d',
+        parent: 'phaser-example',
+        scene: {
+            preload: preload,
+            create: create
+        }
+    };
+
+    var game = new Phaser.Game(config);
+    var deck = null;
+    var bin = null;
+    var instance = null;
+    var cardsInPlay = [];
+    //var dealer = new Player('Mr. Dealer');
+    //var p1 = new Player('Mr. Bond');
+
+    function preload() {
+        this.load.atlas('cards', 'images/cards.png', 'images/cards.json');
+    }
+
+    function create() {
+
+        var cardList = [
+            "twoHearts", "threeHearts", "fourHearts", "fiveHearts",
+            "sixHearts", "sevenHearts", "eightHearts", "nineHearts", "tenHearts",
+            "jackHearts", "queenHearts", "kingHearts", "aceHearts",
+
+            "twoDiamonds", "threeDiamonds", "fourDiamonds", "fiveDiamonds",
+            "sixDiamonds", "sevenDiamonds", "eightDiamonds", "nineDiamonds", "tenDiamonds",
+            "jackDiamonds", "queenDiamonds", "kingDiamonds", "aceDiamonds",
+
+            "twoClubs", "threeClubs", "fourClubs", "fiveClubs",
+            "sixClubs", "sevenClubs", "eightClubs", "nineClubs", "tenClubs",
+            "jackClubs", "queenClubs", "kingClubs", "aceClubs",
+
+            "twoSpades", "threeSpades", "fourSpades", "fiveSpades",
+            "sixSpades", "sevenSpades", "eightSpades", "nineSpades", "tenSpades",
+            "jackSpades", "queenSpades", "kingSpades", "aceSpades"
+        ];
+
+        try {
+            deck = new Deck(cardList);
+            bin = new Deck();
+            instance = this;
+
+            redeal(false);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    function update() {
+    }
+
+    function onDragStart(pointer, gameObject) {
+        // store a reference to the data
+        // the reason for this is because of multitouch
+        // we want to track the movement of this particular touch
+        this.data = event.data;
+        this.alpha = 0.75;
+        this.dragging = true;
+    }
+
+    function onDragEnd(pointer, gameObject) {
+        this.alpha = 1;
+
+        this.dragging = false;
+
+        // set the interaction data to null
+        this.data = null;
+    }
+
+    function onDragMove(pointer, gameObject, dragX, dragY) {
+        if (this.dragging) {
+            var newPosition = this.data.getLocalPosition(this.parent);
+            this.position.x = newPosition.x;
+            this.position.y = newPosition.y;
+        }
+    }
+
+    function pointerDown (pointer) {
+        this.setTint(0xff5555);
+
+    }
+
+    function pointerUp (pointer) {
+        this.clearTint();
+    }
+
+    function randIntBetween(x, y) {
+        //https://hackernoon.com/how-does-javascripts-math-random-generate-random-numbers-ef0de6a20131
+        return Math.floor(Math.random() * y) + x;
+    }
+
+    class Deck {
+        constructor(cards) {
+            this.resetPickedCards();
+            this.addCards(cards);
+        }
+
+        addCards(cards) {
+            this.cards = cards;
+        }
+        resetPickedCards() {
+            this.alreadyPicked = [];
+        }
+
+        getHand(handCount) {
+            var cardsToGet = handCount;
+            if (handCount > this.getRemainingCards()) {
+                //throw 'ERROR: You cannot select more cards (' + handCount + ') than there are in the deck (' + this.cards.length + ').';
+                cardsToGet = this.getRemainingCards();
+            }
+            var hand = [];
+            for (var i = 0; i < cardsToGet; ++i) {
+                hand.push(this.getRandomCard());
+            }
+            return hand;
+        }
+
+        getRemainingCards() {
+            return this.cards.length - this.alreadyPicked.length;
+        }
+
+        getRandomCard() {
+            var validCardNumber = randIntBetween(0, this.cards.length);
+            while (this.alreadyPicked.includes(validCardNumber)) {
+                validCardNumber = randIntBetween(0, this.cards.length);
+            }
+            this.alreadyPicked.push(validCardNumber);
+            console.log('random card is', this.cards[validCardNumber]);
+            return this.cards[validCardNumber];
+        }
+    }
+
+    class Player {
+        constructor(name){
+            this.name = name;
+            this.hand = [];
+        }
+
+        addHand(hand) {
+            this.hand = hand;
+        }
+
+        removeHand() {
+            this.hand = [];
+        }
+    }
+
+    function redeal(isDealer) {
+        console.log('redealing');
+        var hand = deck.getHand(5);
+
+        console.log(hand);
+        console.log("Remaining cards: "+deck.getRemainingCards());
+        var yPos = (isDealer ? 100 : 300);
+        
+        for (var i = 0; i < hand.length; ++i) {
+            var newCard = null;
+
+            newCard = instance.add.sprite(i * 100, yPos, 'cards', hand[i]);
+            newCard.setOrigin(0, 0);
+
+            newCard.setInteractive();
+
+            newCard.on('pointerdown', pointerDown);
+            newCard.on('pointerout', pointerUp);
+            newCard.on('pointerup', pointerUp);
+
+            newCard.on('dragstart', onDragStart);
+            newCard.on('drag', onDragMove);
+            newCard.on('dragend', onDragEnd);
+
+            cardsInPlay.push(newCard);
+        }
+    }
+
+    function resetDeck() {
+        console.log('resetting deck');
+        deck.resetPickedCards();
+        cardsInPlay.forEach(function (card) {
+            card.destroy();
+        });
+    }
+</script>
 </body>
 </html>
